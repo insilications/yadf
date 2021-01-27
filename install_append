@@ -1,0 +1,7 @@
+# shell completion for bash
+# install -dm 0755 %{buildroot}/usr/share/bash-completion/completions
+# install -m0644 ./target/release/build/ripgrep-*/out/rg.bash %{buildroot}/usr/share/bash-completion/completions/rg
+# rm -rf ./target/release/build/ripgrep-*/out/rg.bash
+# man docs
+# install -dm 0755 %{buildroot}/usr/share/man/man1
+# install -m0644 ./target/release/build/ripgrep-*/out/rg.1 %{buildroot}/usr/share/man/man1/rg.1
