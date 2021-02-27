@@ -4,10 +4,10 @@
 #
 %define keepstatic 1
 Name     : yadf
-Version  : 0.12.2
-Release  : 1
-URL      : file:///insilications/build/clearlinux/packages/yadf/yadf-v0.12.2.tar.gz
-Source0  : file:///insilications/build/clearlinux/packages/yadf/yadf-v0.12.2.tar.gz
+Version  : 0.13.1
+Release  : 2
+URL      : file:///aot/build/clearlinux/packages/yadf/yadf-v0.13.1.tar.gz
+Source0  : file:///aot/build/clearlinux/packages/yadf/yadf-v0.13.1.tar.gz
 Summary  : No detailed summary available
 Group    : Development/Tools
 License  : GPL-2.0
