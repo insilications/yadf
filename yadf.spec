@@ -22,6 +22,7 @@ BuildRequires : buildreq-cmake
 BuildRequires : buildreq-distutils3
 BuildRequires : ca-certs
 BuildRequires : ca-certs-static
+BuildRequires : cargo-edit
 BuildRequires : doxygen
 BuildRequires : elfutils-dev
 BuildRequires : gcc-dev
@@ -81,12 +82,14 @@ bin components for the yadf package.
 %prep
 %setup -q -n yadf
 cd %{_builddir}/yadf
+export CARGO_NET_GIT_FETCH_WITH_CLI=true
+export SSL_CERT_FILE=/var/cache/ca-certs/anchors/ca-certificates.crt
+export CARGO_HTTP_CAINFO=/var/cache/ca-certs/anchors/ca-certificates.crt
 cargo update --verbose
+## cargo_update content
+cargo upgrade sysinfo
+## cargo_update end
 cargo fetch --verbose
-cargo fetch --verbose --target x86_64-unknown-linux-gnu
-pushd /builddir/.cargo/registry/src/github.com-1ecc6299db9ec823/sysinfo-0.16.5
-%patch1 -p1
-popd
 
 %build
 unset http_proxy
@@ -108,6 +111,9 @@ export CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=clang-12
 export SSL_CERT_FILE=/var/cache/ca-certs/anchors/ca-certificates.crt
 export CARGO_HTTP_CAINFO=/var/cache/ca-certs/anchors/ca-certificates.crt
 export CARGO_TARGET_DIR=target
+pushd /builddir/.cargo/registry/src/github.com-1ecc6299db9ec823/sysinfo-0.16.5
+patch --no-backup-if-mismatch --fuzz=2 --strip=1 < /builddir/build/SOURCES/0001-Patch-sysinfo-for-static-LTO.patch
+popd
 
 %install
 mkdir -p $HOME/.cargo
