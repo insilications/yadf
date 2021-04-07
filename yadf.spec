@@ -4,21 +4,55 @@
 #
 %define keepstatic 1
 Name     : yadf
-Version  : 0.13.1
-Release  : 2
-URL      : file:///aot/build/clearlinux/packages/yadf/yadf-v0.13.1.tar.gz
-Source0  : file:///aot/build/clearlinux/packages/yadf/yadf-v0.13.1.tar.gz
+Version  : 0.15.2
+Release  : 3
+URL      : file:///aot/build/clearlinux/packages/yadf/yadf-v0.15.2.tar.gz
+Source0  : file:///aot/build/clearlinux/packages/yadf/yadf-v0.15.2.tar.gz
 Summary  : No detailed summary available
 Group    : Development/Tools
 License  : GPL-2.0
 Requires: yadf-bin = %{version}-%{release}
-Requires: regex
+BuildRequires : asciidoctor
+BuildRequires : asciidoctor-bin
+BuildRequires : asciidoctor-dev
+BuildRequires : autoconf-archive-dev
+BuildRequires : binutils-dev
+BuildRequires : binutils-extras
+BuildRequires : buildreq-cmake
+BuildRequires : buildreq-distutils3
 BuildRequires : ca-certs
 BuildRequires : ca-certs-static
+BuildRequires : doxygen
+BuildRequires : elfutils-dev
+BuildRequires : gcc-dev
+BuildRequires : git
+BuildRequires : glibc-dev
+BuildRequires : glibc-staticdev
+BuildRequires : googletest-dev
 BuildRequires : grep
+BuildRequires : intltool
+BuildRequires : intltool-dev
+BuildRequires : libedit
+BuildRequires : libedit-dev
+BuildRequires : libffi-dev
+BuildRequires : libffi-staticdev
+BuildRequires : libstdc++-dev
+BuildRequires : libxml2-dev
+BuildRequires : libxml2-staticdev
+BuildRequires : llvm12
+BuildRequires : llvm12-abi
+BuildRequires : llvm12-bin
+BuildRequires : llvm12-data
+BuildRequires : llvm12-dev
+BuildRequires : llvm12-lib
+BuildRequires : llvm12-libexec
+BuildRequires : llvm12-man
+BuildRequires : llvm12-staticdev
+BuildRequires : ncurses-dev
+BuildRequires : ninja
 BuildRequires : openssl
 BuildRequires : openssl-dev
-BuildRequires : regex
+BuildRequires : ruby
 BuildRequires : rustc
 BuildRequires : rustc-bin
 BuildRequires : rustc-data
@@ -29,6 +63,7 @@ BuildRequires : time
 # Suppress stripping binaries
 %define __strip /bin/true
 %define debug_package %{nil}
+Patch1: 0001-Patch-sysinfo-for-static-LTO.patch
 
 %description
 # YADF — Yet Another Dupes Finder
@@ -46,29 +81,52 @@ bin components for the yadf package.
 %prep
 %setup -q -n yadf
 cd %{_builddir}/yadf
+cargo update --verbose
+cargo fetch --verbose
+cargo fetch --verbose --target x86_64-unknown-linux-gnu
+pushd /builddir/.cargo/registry/src/github.com-1ecc6299db9ec823/sysinfo-0.16.5
+%patch1 -p1
+popd
 
 %build
 unset http_proxy
 unset https_proxy
 unset no_proxy
 export SSL_CERT_FILE=/var/cache/ca-certs/anchors/ca-certificates.crt
-RUSTFLAGS="-C target-cpu=native"
+mkdir -p $HOME/.cargo
+printf "[build]\nrustflags = [\"-Ctarget-cpu=native\", \"-Ztune-cpu=native\", \"-Cprefer-dynamic=no\", \"-Copt-level=3\", \"-Clto=fat\", \"-Clinker-plugin-lto\", \"-Cembed-bitcode=yes\", \"-Clinker=clang-12\", \"-Clink-arg=-flto\", \"-Clink-arg=-fuse-ld=lld\", \"-Clink-arg=-Wl,--lto-O3\", \"-Clink-arg=-Wl,-O2\", \"-Clink-arg=-Wl,--hash-style=gnu\", \"-Clink-arg=-Wl,--enable-new-dtags\", \"-Clink-arg=-Wl,--build-id=sha1\", \"-Clink-arg=-fno-stack-protector\", \"-Clink-arg=-Wl,--as-needed\", \"-Clink-arg=-O3\", \"-Clink-arg=-march=native\", \"-Clink-arg=-mtune=native\", \"-Clink-arg=-falign-functions=32\", \"-Clink-arg=-fasynchronous-unwind-tables\", \"-Clink-arg=-funroll-loops\", \"-Clink-arg=-fvisibility-inlines-hidden\", \"-Clink-arg=-static-libstdc++\", \"-Clink-arg=-march=native\", \"-Clink-arg=-static-libgcc\", \"-Clink-arg=-pthread\", \"-Clink-arg=-lpthread\", \"-Clink-arg=-L.\"]\n[net]\ngit-fetch-with-cli = true\n[profile.release]\nopt-level = 3\nlto = \"fat\"\n" > $HOME/.cargo/config.toml
+unset CFLAGS
+unset CXXFLAGS
+unset FCFLAGS
+unset FFLAGS
+unset CFFLAGS
+unset LDFLAGS
+export CARGO_NET_GIT_FETCH_WITH_CLI=true
+export CARGO_PROFILE_RELEASE_LTO=fat
+export CARGO_PROFILE_RELEASE_OPT_LEVEL=3
+export CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=clang-12
 export SSL_CERT_FILE=/var/cache/ca-certs/anchors/ca-certificates.crt
-cargo update --verbose
+export CARGO_HTTP_CAINFO=/var/cache/ca-certs/anchors/ca-certificates.crt
+export CARGO_TARGET_DIR=target
 
 %install
-RUSTFLAGS="-C target-cpu=native"
+mkdir -p $HOME/.cargo
+printf "[build]\nrustflags = [\"-Ctarget-cpu=native\", \"-Ztune-cpu=native\", \"-Cprefer-dynamic=no\", \"-Copt-level=3\", \"-Clto=fat\", \"-Clinker-plugin-lto\", \"-Cembed-bitcode=yes\", \"-Clinker=clang-12\", \"-Clink-arg=-flto\", \"-Clink-arg=-fuse-ld=lld\", \"-Clink-arg=-Wl,--lto-O3\", \"-Clink-arg=-Wl,-O2\", \"-Clink-arg=-Wl,--hash-style=gnu\", \"-Clink-arg=-Wl,--enable-new-dtags\", \"-Clink-arg=-Wl,--build-id=sha1\", \"-Clink-arg=-fno-stack-protector\", \"-Clink-arg=-Wl,--as-needed\", \"-Clink-arg=-O3\", \"-Clink-arg=-march=native\", \"-Clink-arg=-mtune=native\", \"-Clink-arg=-falign-functions=32\", \"-Clink-arg=-fasynchronous-unwind-tables\", \"-Clink-arg=-funroll-loops\", \"-Clink-arg=-fvisibility-inlines-hidden\", \"-Clink-arg=-static-libstdc++\", \"-Clink-arg=-march=native\", \"-Clink-arg=-static-libgcc\", \"-Clink-arg=-pthread\", \"-Clink-arg=-lpthread\", \"-Clink-arg=-L.\"]\n[net]\ngit-fetch-with-cli = true\n[profile.release]\nopt-level = 3\nlto = \"fat\"\n" > $HOME/.cargo/config.toml
+unset CFLAGS
+unset CXXFLAGS
+unset FCFLAGS
+unset FFLAGS
+unset CFFLAGS
+unset LDFLAGS
+export CARGO_NET_GIT_FETCH_WITH_CLI=true
+export CARGO_PROFILE_RELEASE_LTO=fat
+export CARGO_PROFILE_RELEASE_OPT_LEVEL=3
+export CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=clang-12
 export SSL_CERT_FILE=/var/cache/ca-certs/anchors/ca-certificates.crt
-RUSTFLAGS="-C target-cpu=native" cargo install --verbose --no-track --path . --root %{buildroot}/usr/
-## install_append content
-# shell completion for bash
-# install -dm 0755 %{buildroot}/usr/share/bash-completion/completions
-# install -m0644 ./target/release/build/ripgrep-*/out/rg.bash %{buildroot}/usr/share/bash-completion/completions/rg
-# rm -rf ./target/release/build/ripgrep-*/out/rg.bash
-# man docs
-# install -dm 0755 %{buildroot}/usr/share/man/man1
-# install -m0644 ./target/release/build/ripgrep-*/out/rg.1 %{buildroot}/usr/share/man/man1/rg.1
-## install_append end
+export CARGO_HTTP_CAINFO=/var/cache/ca-certs/anchors/ca-certificates.crt
+export CARGO_TARGET_DIR=target
+cargo install %{?_smp_mflags} --offline --no-track --target x86_64-unknown-linux-gnu --verbose --path . --target-dir target --root %{buildroot}/usr/
+## Cargo install assets
 
 %files
 %defattr(-,root,root,-)
