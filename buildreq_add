@@ -10,6 +10,7 @@ buildreq-cmake
 buildreq-distutils3
 ca-certs
 ca-certs-static
+cargo-edit
 doxygen
 elfutils-dev
 gcc-dev
